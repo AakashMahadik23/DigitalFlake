@@ -1,16 +1,21 @@
-// middlewares/authMiddleware.js
+// In your middlewares/authMiddleware.js
 const jwt = require('jsonwebtoken');
 
-const authenticateToken = (req, res, next) => {
-  const token = req.header('Authorization');
-  if (!token) return res.status(401).json({ message: 'Access denied' });
+const verifyToken = (req, res, next) => {
+  const token = req.headers.authorization;
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ message: 'Invalid token' });
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized - Token not provided' });
+  }
 
-    req.user = user;
+  jwt.verify(token, 'your-secret-key', (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: 'Unauthorized - Invalid token' });
+    }
+
+    req.userId = decoded.userId;
     next();
   });
 };
 
-module.exports = authenticateToken;
+module.exports = { verifyToken };
